@@ -17,7 +17,7 @@ def sleep_time() -> float:
 
 
 def get_from_hd(url: str, cache: str = CACHE_DIR) -> str:
-	path = f"{cache}{url}"
+	path = cache + url.replace("/", "|")
 	page_source = ""
 	if not os.path.isfile(path):
 		return ""
@@ -27,7 +27,8 @@ def get_from_hd(url: str, cache: str = CACHE_DIR) -> str:
 
 
 def save_on_hd(url: str, page_source: str, cache: str = CACHE_DIR) -> None:
-	with open(f"{cache}{url}", "w") as f:
+	path = cache + url.replace("/", "|")
+	with open(path, "w") as f:
 		f.write(page_source)
 
 
