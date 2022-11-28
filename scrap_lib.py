@@ -57,7 +57,7 @@ def get_page_soup(url: str, headers: dict = HEADERS, use_hd: bool = True,
 	if use_hd:
 		save_on_hd(url=url, page_source=page_source)
 
-	return BS(page_source, 'lxml')
+	return BeautifulSoup(page_source, 'lxml')
 
 
 def get_from_free_proxy_list() -> dict:
