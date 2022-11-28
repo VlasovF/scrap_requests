@@ -49,7 +49,7 @@ def get_page_soup(url: str, headers: dict = HEADERS, use_hd: bool = True,
 	if use_hd:
 		page_source = get_from_hd(url=url)
 		if page_source:
-			return BS(page_source, 'lxml')
+			return BeautifulSoup(page_source, 'lxml')
 
 	page_source = requests.get(url, headers=headers).text
 	sleep(sleep_time)
