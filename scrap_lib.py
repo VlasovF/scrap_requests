@@ -5,8 +5,14 @@ from time import sleep
 import requests
 import os.path
 import random
+import logging
 
 
+
+logging.basicConfig(filename='scraper.log',
+			filemod='a',
+			format='%(asctime)s - %(message)s',
+			datefmt='%H:%M:%S')
 
 HEADERS = requests.utils.default_headers()
 HEADERS.update({"User-Agent": UserAgent().random})
@@ -120,12 +126,21 @@ def get_all_proxies() -> dict:
 	return proxies
 
 
+class MaxRequestsUrl(Exception):
+	pass
+
+
+class ResponseBadStatusCode(Exception):
+	pass
+
+
 class Requester:
 	use_hd = True
 	sleep_rand = True
 	sleep_time = 1
 	ua = UserAgent()
 	enable_proxy = False
+	max_requests_url = 3
 	proxies = {}
 	proxy_list = {}
 
@@ -146,6 +161,7 @@ class Requester:
 			return ""
 		with open(path, 'r') as f:
 			page_source = f.read()
+		logging.info("hdget " + url)
 		return page_source
 
 	def save_on_hd(self, url, str, page_source: str) -> None:
@@ -160,22 +176,30 @@ class Requester:
 		self.proxies = {'http': random.choice(self.proxy_list['http']),
 				'https': random.choice(self.proxy_list['https'])}
 
-	def get_response(self, url: str):
+	def get_response(self, url: str, req: int = 0):
 		self.change_headers()
 		self.change_proxies()
 		if self.enable_proxy:
-			response = requests.get(url, headers=self.headers,
-				proxies=self.proxies)
+			try:
+				response = requests.get(url, headers=self.headers,
+					proxies=self.proxies)
+			except Exception as e:
+				response = self.request(url=url, req=req)
 		else:
 			response = requests.get(url, headers=self.headers)
 		return response
 
-	def request(self, url: str):
+	def request(self, url: str, req: int = 0):
+		req += 1
+		if req == self.max_requests_url:
+			logging.info('MaxRequestsUrl {req}')
+			raise MaxRequestsUrl
 		if self.sleep_rand:
 			sleep(round(1/random.random(), 1))
 		else:
 			sleep(self.sleep_time)
-		return self.get_response(url=url)
+		logging.info(str(req + 1) + ' get ' + url)
+		return self.get_response(url=url, req=req)
 
 	def get_page_soup(self, url: str) -> BeautifulSoup:
 		page_source = ""
@@ -183,7 +207,11 @@ class Requester:
 			page_source = self.get_from_hd(url=url)
 
 		if not page_source:
-			page_source = self.request(url=url).text
+			response = self.request(url=url)
+			if response.status_code != 200:
+				logging.info(f"StatusCode {response.status_code}")
+				raise ResponseBadStatusCode
+			page_source = response.text
 			if self.use_hd:
 				self.save_on_hd(url=url, page_source=page_source)
 
