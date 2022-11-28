@@ -151,7 +151,7 @@ class Requester:
 
 	def update(self,newdata):
 		for key,value in newdata.items():
-		setattr(self, key, value)
+			setattr(self, key, value)
 
 	def use_proxies(self, proxy_list: dict):
 		self.enable_proxy = True
