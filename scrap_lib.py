@@ -54,6 +54,72 @@ def get_page_soup(url: str, headers: dict = HEADERS, use_hd: bool = True,
 	return BS(page_source, 'lxml')
 
 
+def get_from_free_proxy_list() -> dict:
+	proxies = {'http': [], 'https': []}
+	url = "https://free-proxy-list.net/"
+	page = get_page_soup(url)
+	table = page.select('.table-striped')[0]
+	trs = table.find_all('tr')
+	ips = [tr.find_all('td') for tr in trs[1:]]
+	res = [{'ip': t[0].text, 'port': t[1].text, 'https': t[-2].text} for t in ips]
+	res = [{
+		'ip': t[0].text,
+		'port': t[1].text,
+		'https': t[-2].text,
+		'anonymity': t[-4].text} for t in ips[1:]]
+	for ip in res:
+		if ip['https'] == "yes" and ip['anonymity'] != "transparent":
+			proxies['https'].append(f"http://{ip['ip']}:{ip['port']}")
+		elif ip['https'] == "no" and ip['anonymity'] != "transparent":
+			proxies['http'].append(f"http://{ip['ip']}:{ip['port']}")
+	return proxies
+
+
+def get_from_one_hidemy_page(soup: BeautifulSoup) -> dict:
+	proxies = dict()
+	trs = soup.select('.table_block')[0].select('tr')
+	trs = [tr.find_all('td') for tr in trs]
+	res = [{'ip': tr[0].text,
+		'port': tr[1].text,
+		'https': tr[-3].text}
+		for tr in trs[1:]]
+
+	proxies['http'] = [f"http://{ip['ip']}:{ip['port']}" for ip in res
+				if ip['https'] == "HTTP"]
+
+	proxies['https'] = [f"http://{ip['ip']}:{ip['port']}" for ip in res
+				if ip['https'] == "HTTPS"]
+	return proxies
+
+
+def get_hidemy_page_links(soup: BeautifulSoup) -> list:
+	lis = soup.select('.pagination')[0].find_all('li')
+	url = "https://hidemy.name"
+	urls = [url + li.select('a')[0]['href'] for li in lis[:-1]]
+	return urls
+
+
+def get_from_hidemy() -> dict:
+	proxies = {'http': [], 'https': []}
+	url = 'https://hidemy.name/ru/proxy-list/?type=hs&anon=34#list'
+	page = get_page_soup(url)
+	urls = get_hidemy_page_links(page)
+	for url in urls:
+		page = get_page_soup(url)
+		pp = get_from_one_hidemy_page(page)
+		proxies['http'] += pp['http']
+		proxies['https'] += pp['https']
+	return proxies
+
+
+def get_all_proxies() -> dict:
+	fpl_pl = get_from_free_proxy_list()
+	hmy_pl = get_from_hidemy()
+	proxies = {'http': fpl_pl['http'] + hmy_pl['http'],
+			'https': fpl_pl['https'] + hmy_pl['https']}
+	return proxies
+
+
 class Requester:
 	use_hd = True
 	sleep_rand = True
