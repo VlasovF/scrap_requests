@@ -168,7 +168,7 @@ class Requester:
 		logging.info("hdget " + url)
 		return page_source
 
-	def save_on_hd(self, url, str, page_source: str) -> None:
+	def save_on_hd(self, url: str, page_source: str) -> None:
 		path = file_path(self.cache_dir, url)
 		with open(path, 'w') as f:
 			f.write(page_source)
