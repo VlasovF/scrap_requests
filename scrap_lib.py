@@ -10,7 +10,7 @@ import logging
 
 
 logging.basicConfig(filename='scraper.log',
-			filemod='a',
+			filemode='a',
 			format='%(asctime)s - %(message)s',
 			datefmt='%H:%M:%S')
 
