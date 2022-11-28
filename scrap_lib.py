@@ -45,7 +45,7 @@ def save_on_hd(url: str, page_source: str, cache: str = CACHE_DIR) -> None:
 
 
 def get_page_soup(url: str, headers: dict = HEADERS, use_hd: bool = True,
-		  sleep_time: float = sleep_time()) -> BS:
+		  sleep_time: float = sleep_time()) -> BeautifulSoup:
 	if use_hd:
 		page_source = get_from_hd(url=url)
 		if page_source:
