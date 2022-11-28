@@ -63,7 +63,7 @@ def get_page_soup(url: str, headers: dict = HEADERS, use_hd: bool = True,
 def get_from_free_proxy_list() -> dict:
 	proxies = {'http': [], 'https': []}
 	url = "https://free-proxy-list.net/"
-	page = get_page_soup(url)
+	page = get_page_soup(url, sleep_time=0.1)
 	table = page.select('.table-striped')[0]
 	trs = table.find_all('tr')
 	ips = [tr.find_all('td') for tr in trs[1:]]
@@ -108,10 +108,10 @@ def get_hidemy_page_links(soup: BeautifulSoup) -> list:
 def get_from_hidemy() -> dict:
 	proxies = {'http': [], 'https': []}
 	url = 'https://hidemy.name/ru/proxy-list/?type=hs&anon=34#list'
-	page = get_page_soup(url)
+	page = get_page_soup(url, sleep_time=0.1)
 	urls = get_hidemy_page_links(page)
 	for url in urls:
-		page = get_page_soup(url)
+		page = get_page_soup(url, sleep_time=0.1)
 		pp = get_from_one_hidemy_page(page)
 		proxies['http'] += pp['http']
 		proxies['https'] += pp['https']
